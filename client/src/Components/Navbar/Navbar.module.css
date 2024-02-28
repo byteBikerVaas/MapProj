@@ -1,0 +1,17 @@
+.navbar {
+  background-color: #1976d2; /* Example background color */
+  padding: 10px; /* Example padding */
+}
+
+.navLink {
+  color: white; /* Example text color */
+  text-decoration: none; /* Remove underline */
+  margin-right: 20px; /* Example spacing between links */
+  padding: 8px 16px; /* Example padding */
+  border-radius: 4px; /* Example border radius */
+  transition: background-color 0.3s; /* Example transition for smoother hover effect */
+}
+
+.navLink:hover {
+  background-color: blue; /* Example background color on hover */
+}

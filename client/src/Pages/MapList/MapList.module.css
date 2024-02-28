@@ -1,0 +1,14 @@
+/* MapList.module.css */
+.container {
+  padding: 20px;
+}
+
+.mapList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.mapCard {
+  width: 100%;
+}
