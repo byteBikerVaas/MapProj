@@ -1,12 +1,12 @@
-// MapDetails.jsx
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { Stage, Graphics } from "@pixi/react";
 import { useParams } from "react-router-dom";
-import styles from "./MapDetails.module.css";
 
 function MapDetails() {
   const { id } = useParams();
   const [mapDetails, setMapDetails] = useState(null);
+  const scalingFactor = 0.04; // Adjust the scaling factor as needed
 
   useEffect(() => {
     const fetchMapDetails = async () => {
@@ -20,53 +20,61 @@ function MapDetails() {
     fetchMapDetails();
   }, [id]);
 
-  if (!mapDetails) {
-    return <div>Loading...</div>;
-  }
+  const renderRectangles = () => {
+    if (!mapDetails) return null;
+
+    const { tiles } = mapDetails;
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    tiles.forEach((rectangle) => {
+      const { size_info, world_coordinate } = rectangle;
+      const [up, right, down, left] = size_info;
+      const [x, y] = JSON.parse(world_coordinate); // Parse the world coordinate
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x + right);
+      maxY = Math.max(maxY, y + down);
+    });
+
+    return tiles.map((rectangle, index) => {
+      const { size_info, world_coordinate } = rectangle;
+      const [up, right, down, left] = size_info;
+      const [x, y] = JSON.parse(world_coordinate); // Parse the world coordinate
+      const centerX = (x - minX + maxX) * scalingFactor + 400; // Calculate center X
+      const centerY = (y - minY + maxY) * scalingFactor; // Calculate center Y
+      const rectWidth = (right + left) * scalingFactor; // Scale width
+      const rectHeight = (up + down) * scalingFactor; // Scale height
+
+      return (
+        <Graphics
+          key={index}
+          draw={(g) => {
+            g.clear();
+            g.lineStyle(2, 0x00ff00, 1);
+            g.beginFill(0x0000ff, 1); // Outline color and thickness
+            g.drawRect(
+              centerX - rectWidth + 100,
+              centerY - rectHeight - 100,
+              rectWidth,
+              rectHeight
+            ); // Adjust position to center
+          }}
+        />
+      );
+    });
+  };
 
   return (
-    <div className={styles.container}>
-      <button
-        className={styles.goBackButton}
-        onClick={() => window.history.back()}
+    <div style={{}}>
+      <Stage
+        width={window.innerWidth} // Adjust the width as needed
+        height={window.innerHeight} // Adjust the height as needed
       >
-        Go back
-      </button>
-      <h3 className={styles.title}>Map Details</h3>
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th>Store Status</th>
-            <th>Zone</th>
-            <th>Sector</th>
-            <th>Barcode</th>
-            <th>Bot ID</th>
-            <th>Blocked</th>
-            <th>Size Info</th>
-            <th>MSU Dimensions</th>
-            <th>World Coordinate</th>
-            <th>World Coordinate Reference Neighbour</th>
-            <th>Coordinate</th>
-          </tr>
-        </thead>
-        <tbody>
-          {mapDetails.tiles.map((map, index) => (
-            <tr key={index}>
-              <td>{map.store_status}</td>
-              <td>{map.zone}</td>
-              <td>{map.sector}</td>
-              <td>{map.barcode}</td>
-              <td>{map.botid}</td>
-              <td>{map.blocked ? "Yes" : "No"}</td>
-              <td>{map.size_info && map.size_info.join(", ")}</td>
-              <td>{map.msu_dimensions}</td>
-              <td>{map.world_coordinate}</td>
-              <td>{map.world_coordinate_reference_neighbour}</td>
-              <td>{map.coordinate}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        {renderRectangles()}
+      </Stage>
     </div>
   );
 }
